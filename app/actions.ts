@@ -9,10 +9,15 @@ export async function addExpense(formData: FormData) {
   // 1. Get current user session
   const session = await getServerSession(authOptions);
   
-  if (!session || !session.user?.id) {
+  // --- THE FIX IS HERE ---
+  // We cast 'user' to 'any' to tell TypeScript it's okay to access '.id'
+  const user = session?.user as any;
+
+  if (!session || !user?.id) {
     throw new Error("You must be logged in to add an expense.");
   }
-  const userId = session.user.id;
+  const userId = user.id;
+  // -----------------------
 
   // 2. Get data from the form
   const description = formData.get("description") as string;
