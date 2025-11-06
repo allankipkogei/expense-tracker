@@ -1,26 +1,24 @@
-import NextAuth from "next-auth"
+import NextAuth, { AuthOptions, Session, User } from "next-auth" // Import types
 import GoogleProvider from "next-auth/providers/google"
 import { PrismaAdapter } from "@auth/prisma-adapter"
-import prisma from "@/lib/prisma"; // <-- THE FIX (uses our new singleton)
+import prisma from "@/lib/prisma";
 
-export const authOptions = {
-  // Use Prisma to store user accounts, sessions, etc.
-  adapter: PrismaAdapter(prisma), // <-- This 'prisma' now comes from our import
-  
-  // Configure one or more authentication providers
+// Explicitly type authOptions
+export const authOptions: AuthOptions = {
+  adapter: PrismaAdapter(prisma),
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
-  
-  // Optional: callbacks for more control
   callbacks: {
-    async session({ session, user }) {
-      // Add the user's ID to the session object
+    // Add types to session and user here
+    async session({ session, user }: { session: Session; user: User }) {
       if (session.user) {
-        session.user.id = user.id;
+        // You might need to extend the Session type if TypeScript complains about 'id'
+        // For now, we'll cast it to avoid complex type augmentation
+        (session.user as any).id = user.id; 
       }
       return session;
     },
